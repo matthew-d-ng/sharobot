@@ -75,7 +75,7 @@ def get_user_bookmarks(user_id):
             picture = illust.meta_pages[0].image_urls.original
         
         # print(illust)
-        art = Art(illust.id, illust.title, rating, illust.type, album, picture, illust.user.name)
+        art = Art(illust.id, illust.title, rating, illust.illust_type, album, picture, illust.user.name)
         illust_list.append(art)
         user_cache[user_id].pop()
         user_cache[user_id] = [illust.id] + user_cache[user_id]

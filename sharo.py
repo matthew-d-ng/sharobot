@@ -8,8 +8,7 @@ import pixiv_reader
 client = discord.Client()
 
 ANDREW_ID = "302262516744978434"
-MADS_ID = "322457949685415936"
-
+AVON_ID = "71349622504689664"
 # TODO:
 #               FORMATTED POST + multiple images per post + ugoira(?)
 
@@ -36,7 +35,7 @@ class Monitor(threading.Thread):
 
 
 def init_bot():
-    client.change_presence(game=discord.Game(name="in Rabbit House", type=0))
+    # client.change_presence(game=discord.Game(name="in Rabbit House", type=0))
     t = Monitor(client)
     t.start()
     client.run(config.token)
@@ -44,15 +43,6 @@ def init_bot():
         t.join()
     except KeyboardInterrupt:  
         client.logout()
-    
-
-def is_andrew(m):
-    return m.author.id == ANDREW_ID
-
-def is_mads(m):
-    print("checking message...")
-    return m.author.id == MADS_ID
-
 
 
 @client.event
@@ -70,16 +60,22 @@ async def on_message(message):
         print(message.channel)
         await client.send_message(message.channel, "Can I go home?")
 
-    elif message.content.startswith("&purgeme") and message.author.id == ANDREW_ID:
+    elif message.content.startswith("&purgeandrew") and (message.author.id == ANDREW_ID or message.author.id == AVON_ID):
         for channel in message.server.channels:
-            await client.purge_from(channel, check=is_andrew)
-
-    elif message.content.startswith("&purgetest"):
-        print("purging ", message.channel)
-        
-        async for record in client.logs_from(message.channel, limit=None):
-            if record.author.id == MADS_ID:
-                await client.delete_message(record)
+            if not channel.id == "335872855126573066" and not channel.id == "367811037367500801" and not channel.id == "337150958427701248":
+                print("purging ", channel)
+                counter = 0
+                done = False
+                earliest_time = None
+                while not done:    
+                    done = True
+                    async for record in client.logs_from(channel, limit=1000, before=earliest_time):
+                        if record.author.id == ANDREW_ID:
+                            counter += 1
+                            await client.delete_message(record)
+                        earliest_time = record.timestamp
+                        done = False
+                print("Deleted ", counter, " messages from ", channel)
 
     elif isinstance(message.author, discord.Member) \
                             and message.author.server_permissions.manage_server:
