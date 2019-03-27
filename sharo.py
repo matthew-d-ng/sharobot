@@ -4,11 +4,10 @@ import discord
 import config
 import tables
 import pixiv_reader
+import time
 
 client = discord.Client()
 
-ANDREW_ID = "302262516744978434"
-AVON_ID = "71349622504689664"
 # TODO:
 #               FORMATTED POST + multiple images per post + ugoira(?)
 
@@ -38,7 +37,11 @@ def init_bot():
     # client.change_presence(game=discord.Game(name="in Rabbit House", type=0))
     t = Monitor(client)
     t.start()
-    client.run(config.token)
+    try:
+        client.run(config.token)
+    except OSError:
+        time.sleep(10*60)
+        init_bot()
     try:
         t.join()
     except KeyboardInterrupt:  
@@ -59,23 +62,6 @@ async def on_message(message):
         print("Received: ", message.content)
         print(message.channel)
         await client.send_message(message.channel, "Can I go home?")
-
-    elif message.content.startswith("&purgeandrew") and (message.author.id == ANDREW_ID or message.author.id == AVON_ID):
-        for channel in message.server.channels:
-            if not channel.id == "335872855126573066" and not channel.id == "367811037367500801" and not channel.id == "337150958427701248":
-                print("purging ", channel)
-                counter = 0
-                done = False
-                earliest_time = None
-                while not done:    
-                    done = True
-                    async for record in client.logs_from(channel, limit=1000, before=earliest_time):
-                        if record.author.id == ANDREW_ID:
-                            counter += 1
-                            await client.delete_message(record)
-                        earliest_time = record.timestamp
-                        done = False
-                print("Deleted ", counter, " messages from ", channel)
 
     elif isinstance(message.author, discord.Member) \
                             and message.author.server_permissions.manage_server:

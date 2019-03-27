@@ -75,7 +75,7 @@ def get_user_bookmarks(user_id):
             picture = illust.meta_pages[0].image_urls.original
         
         # print(illust)
-        art = Art(illust.id, illust.title, rating, illust.illust_type, album, picture, illust.user.name)
+        art = Art(illust.id, illust.title, rating, illust.type, album, picture, illust.user.name)
         illust_list.append(art)
         user_cache[user_id].pop()
         user_cache[user_id] = [illust.id] + user_cache[user_id]
@@ -100,7 +100,7 @@ def post_user_bookmarks(client, user, bookmarks):
                         illust.title + "\n<" + illust_url + str(illust.id) + ">\n"
             if illust.album:
                 post = post + "***ALBUM** - MULTIPLE IMAGES THROUGH LINK*"
-            if illust.type == "ugoira":
+            if illust.illust_type == "ugoira":
                 post = post + "***UGOIRA** - Animation visible through link"
             api.download(illust.original_image)
             path = os.path.basename(illust.original_image)
