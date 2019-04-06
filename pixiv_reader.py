@@ -131,12 +131,12 @@ def post_user_bookmarks(client, user, bookmarks):
             if image_size > MAX_FILE_SIZE:
                 post = post + "\n\n *Image too large for discord (exceeds 8 MB)* :("
             for server in subscriptions[user]:
-                    channel = client.get_channel(channels[server])
-                    if image_size <= MAX_FILE_SIZE:
-                        fut = asyncio.run_coroutine_threadsafe(client.send_file(channel, path, content=post), client.loop)
-                    else:
-                        fut = asyncio.run_coroutine_threadsafe(client.send_message(channel, content=post), client.loop)
-                    fut.result()
+                channel = client.get_channel(channels[server])
+                if image_size <= MAX_FILE_SIZE:
+                    fut = asyncio.run_coroutine_threadsafe(client.send_file(channel, path, content=post), client.loop)
+                else:
+                    fut = asyncio.run_coroutine_threadsafe(client.send_message(channel, content=post), client.loop)
+                fut.result()
             os.remove(path)
 
     channels_mutex.release()
