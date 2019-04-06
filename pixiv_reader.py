@@ -1,9 +1,10 @@
 import asyncio
 import time
 import os
-from pixivpy3 import *
+import re
 import pixiv_config
 import discord
+from pixivpy3 import *
 from art import Art
 from tables import subscriptions
 from tables import channels
@@ -11,6 +12,7 @@ from tables import subs_mutex
 from tables import channels_mutex
 from backoff_timer import Backoff_Timer
 
+MAX_FILE_SIZE = 8*1024*1024
 illust_url = "https://www.pixiv.net/member_illust.php?mode=medium&illust_id="
 
 user_cache = dict()
@@ -42,6 +44,27 @@ def set_rating(tags):
     return "R-18G"
 
 
+def get_illust_from_filename(filename):
+
+    match = re.fullmatch(r"(\d+)_p(\d+)(_master1200)?\.(jpg|png)", filename)
+
+    if match:
+        pixiv_id = match[1]
+        image_index = int(match[2])
+        try:
+            pixiv_post = api.illust_detail(pixiv_id).illust
+        except:
+            return
+
+        if len(pixiv_post.meta_single_page) > 0:
+            illust = pixiv_post.meta_single_page.original_image_url
+        else:
+            illust = pixiv_post.meta_pages[image_index].image_urls.original
+
+        api.download(illust)
+        return os.path.basename(illust)
+
+
 def get_user_bookmarks(user_id):
 
     illust_list = list()
@@ -49,10 +72,10 @@ def get_user_bookmarks(user_id):
     # print(json_result.next_url)
     # next_qs = api.parse_qs(json_result.next_url)
     # print(next_qs)
-    
+
     # newBookmarks = True
     # while newBookmarks:
-    if not "illusts" in json_result:   
+    if not "illusts" in json_result:
         api.login(pixiv_config.user, pixiv_config.password)
         json_result = api.user_bookmarks_illust(user_id)
 
@@ -73,7 +96,7 @@ def get_user_bookmarks(user_id):
         else:
             album = True
             picture = illust.meta_pages[0].image_urls.original
-        
+    
         # print(illust)
         art = Art(illust.id, illust.title, rating, illust.type, album, picture, illust.user.name)
         illust_list.append(art)
@@ -104,9 +127,15 @@ def post_user_bookmarks(client, user, bookmarks):
                 post = post + "***UGOIRA** - Animation visible through link"
             api.download(illust.original_image)
             path = os.path.basename(illust.original_image)
+            image_size = os.path.getsize(path)
+            if image_size > MAX_FILE_SIZE:
+                post = post + "\n\n *Image too large for discord (exceeds 8 MB)* :("
             for server in subscriptions[user]:
                     channel = client.get_channel(channels[server])
-                    fut = asyncio.run_coroutine_threadsafe(client.send_file(channel, path, content=post), client.loop)
+                    if image_size <= MAX_FILE_SIZE:
+                        fut = asyncio.run_coroutine_threadsafe(client.send_file(channel, path, content=post), client.loop)
+                    else:
+                        fut = asyncio.run_coroutine_threadsafe(client.send_message(channel, content=post), client.loop)
                     fut.result()
             os.remove(path)
 
@@ -135,3 +164,11 @@ def monitor_bookmarks(client):
                     timer.reset_time()
                     post_user_bookmarks(client, user, latest_bookmarks)
         subs_mutex.release()
+
+
+def test():
+    illust = api.illust_detail(73595703).illust
+    print(illust)
+
+if __name__ == "__main__":
+    test()

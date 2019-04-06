@@ -1,3 +1,7 @@
 config.py
 pixiv_config.py
+purge.py
+*.jpg
+*.png
+__pycache__
 
