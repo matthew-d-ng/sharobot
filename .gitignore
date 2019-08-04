@@ -4,4 +4,6 @@ purge.py
 *.jpg
 *.png
 __pycache__
+todd.py
+responses.py
 

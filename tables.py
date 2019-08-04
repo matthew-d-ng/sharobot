@@ -21,7 +21,7 @@ def init_data(file):
 
 
 def update_channel_data(server, channel):
-
+    
     channels_mutex.acquire()
     channels[server.id] = channel.id
     channels_file = open("channels.pickle","wb")
