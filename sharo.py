@@ -17,19 +17,6 @@ client = discord.Client()
 # TODO:
 #               FORMATTED POST + multiple images per post + ugoira(?)
 
-HELP_MESSAGE = ("Hello, I'm currently in a prototype stage, report any bugs or suggestions to Alpacafe#7021\n"
-                            "Coming soon: Nicer looking posts, filtering R-18 to a different channel and subscribing to artist's works\n"
-                            "Current R-18 policy: Will not post at all\n"
-                            "I can't do anything about pixiv users labelling lewd things as 'All Ages', sorry\n\n"
-                            "**Usage:**\n"
-                            "    - **&subscribe** *user_id*: where *user_id* is a pixiv id\n"
-                            "        Monitors the bookmarks of the pixiv user, if the user exists, and posts them to the pixiv channel\n\n"
-                            "    - **&unsubscribe** *user_id*:\n"
-                            "        Removes the given pixiv id from the subcription list, if it is there\n\n"
-                            "    - **&set channel**:\n"
-                            "        Sets the current channel for pixiv posts to be placed. Only one allowed per server. Setting a new channel will overwrite the old one.")
-
-
 class Monitor(threading.Thread):
 
     def __init__(self, client):
@@ -88,7 +75,7 @@ async def on_message(message):
             await client.send_message(message.channel, "Channel set as pixiv dump")
 
         elif message.content.startswith("&help"):
-            await client.send_message(message.author, HELP_MESSAGE)
+            await client.send_message(message.author, config.help_message)
 
     if len(message.attachments) > 0:
         for pic in message.attachments:
